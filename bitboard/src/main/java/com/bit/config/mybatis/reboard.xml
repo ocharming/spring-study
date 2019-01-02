@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bit.board.dao.ReboardDao">
+
+  <insert id="writeBoard" parameterType="reboardDto">
+    insert into board (name, id, email, subject, content, hit, logtime, bcode)
+    values (#{name}, #{id}, #{email}, #{subject}, #{content}, 0, now(), #{bcode})
+  </insert>
+  
+  <select id="selectSeq" parameterType="reboardDto" resultType="int">
+    select seq 
+    from board 
+    where id = #{id} 
+    order by seq desc
+    limit 1
+  </select>
+  
+  <insert id="writeArticle">
+    insert into reboard (seq, ref, lev, step, pseq, reply)
+    values (#{seq}, #{ref}, 0, 0, 0, 0)
+  </insert>
+  
+  <select id="viewArticle" parameterType="int" resultType="reboardDto">
+    select b.seq, b.name, b.id, b.email, b.subject, b.content, b.hit,  b.bcode,
+      b.logtime, r.rseq, r.ref, r.lev, r.step, r.pseq, r.reply
+	  from board b, reboard r
+		where b.seq = r.seq
+		and b.seq = #{seq}
+  </select>
+  
+  <select id="listArticle" parameterType="Map" resultType="reboardDto">
+    select *
+		from(select @rownum:=@rownum+1 rn, a.*
+		  from(
+		    select b.seq, b.name, b.id, b.email, b.subject, b.content, b.hit,  b.bcode, 
+          (CASE WHEN date_format(b.logtime,'%y%m%d') = date_format(now(),'%y%m%d') then date_format(b.logtime,'%H:%i:%s')
+          ELSE date_format(b.logtime,'%y-%m-%d')
+          END) logtime,
+          r.rseq, r.ref, r.lev, r.step, r.pseq, r.reply
+        from board b join reboard r
+        on b.seq = r.seq
+        where b.bcode = #{bcode}
+		    <if test="word != null and word != ''">
+		      <choose>
+		        <when test="key =='subject'">
+		          and b.subject like CONCAT('%',#{word},'%')
+		        </when>
+		        <otherwise>
+		          and b.${key} = #{word}
+		        </otherwise>
+		      </choose>
+		    </if>
+		    order by ref desc, step
+		    ) a
+		  where (@rownum:=0)=0
+		  ) b
+		where b.rn > #{start}
+		and rn &lt;= #{end}
+  </select>
+  
+  <update id="updateStep" parameterType="reboardDto">
+    update reboard
+    set step = step + 1
+    where ref = #{ref}
+    and step > #{step}
+  </update>
+  
+  <insert id="replyArticle" parameterType="reboardDto">
+   insert all
+      into board (seq, name, id, email, subject, content, hit, logtime, bcode)
+      values (#{seq}, #{name}, #{id}, #{email}, #{subject}, #{content}, 0, sysdate, #{bcode})
+      into reboard (rseq, seq, ref, lev, step, pseq, reply)
+      values (reboard_rseq.nextval, #{seq}, #{ref}, #{lev} + 1, #{step} + 1, #{pseq}, 0)
+    select * from dual
+  </insert>
+    
+  <update id="updateReply" parameterType="int">
+    update reboard
+    set reply = reply + 1
+    where seq = #{pseq}
+  </update>
+  
+</mapper>

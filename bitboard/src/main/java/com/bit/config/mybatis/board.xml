@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bit.board.dao.BoardDao">
+
+  <insert id="writeArticle" parameterType="boardDto">
+    insert all
+      into board (seq, name, id, email, subject, content, hit, logtime, bcode)
+      values (#{seq}, #{name}, #{id}, #{email}, #{subject}, #{content}, 0, sysdate, #{bcode})
+    select * from dual
+  </insert>
+  
+  <select id="viewArticle" parameterType="int" resultType="boardDto">
+    select b.seq, b.name, b.id, b.email, b.subject, b.content, b.hit,  b.bcode, b.logtime
+    from board b
+    where b.seq = #{seq}
+  </select>
+  
+  <select id="listArticle" parameterType="Map" resultType="boardDto">
+    select *
+    from(select rownum rn, a.*
+      from(
+        select b.seq, b.name, b.id, b.email, b.subject, b.content, b.hit,  b.bcode,
+            decode(to_char(b.logtime, 'YYMMDD'), to_char(sysdate, 'YYMMDD'), to_char(b.logtime,'hh24:mi:ss'), to_char(b.logtime, 'YY.MM.DD')) logtime
+        from board b
+        where b.bcode = #{bcode}
+        <if test="word != null and word != ''">
+          <choose>
+            <when test="key =='subject'">
+              and b.subject like '%'||#{word}||'%'
+            </when>
+            <otherwise>
+              and b.${key} = #{word}
+            </otherwise>
+          </choose>
+        </if>
+        order by seq desc
+        ) a
+      where rownum &lt;= #{end}
+      ) b
+    where b.rn > #{start}
+  </select>
+</mapper>

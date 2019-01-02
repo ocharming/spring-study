@@ -1,6 +1,5 @@
 package com.bit.board.service;
 
-import java.util.List;
 import com.bit.board.model.MemoDto;
 
 public interface MemoService {
