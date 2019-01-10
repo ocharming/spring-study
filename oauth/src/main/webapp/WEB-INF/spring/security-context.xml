@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd">
+
+  <http auto-config="true" use-expressions="true">
+<!--     <intercept-url pattern="/login/loginForm.do" access="permitAll" />  -->
+<!--     <intercept-url pattern="/home.do" access="permitAll" />  -->
+<!--     <intercept-url pattern="/admin/**" access="hasRole('ADMIN')" />  -->
+     <intercept-url pattern="/" access="permitAll" />
+     <intercept-url pattern="/member/insert" access="permitAll" />
+     <intercept-url pattern="/member/idcheck" access="permitAll" />
+     <intercept-url pattern="/member/rest/**" access="permitAll" />
+     <intercept-url pattern="/member/**" access="hasRole('ROLE_USER')" />
+     
+    <form-login login-page="/login" default-target-url="/member/list" 
+        authentication-failure-url="/?error" 
+        username-parameter="id" password-parameter="password" /> 
+    <logout logout-url="/logout" logout-success-url="/" /> 
+    <access-denied-handler error-page="/login/accessDenied" />
+    <csrf disabled="true"/>
+  </http>
+  
+  <beans:bean id="bcryptPasswordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"/>
+  
+  <!-- provider -->
+  <authentication-manager>
+    <authentication-provider>
+    <jdbc-user-service data-source-ref="ds" role-prefix="" 
+        users-by-username-query="select id, password, 1 enabled from users where id = ?;" 
+        authorities-by-username-query="select u.id, a.authority from authorities a join users u on a.seq = u.seq where id = ?;" 
+        />
+    <password-encoder ref="bcryptPasswordEncoder"/>
+    </authentication-provider>
+  </authentication-manager>
+
+
+
+</beans:beans>

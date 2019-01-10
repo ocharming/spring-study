@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.bit.member.dao.MemberDao">
+
+  <select id="getSeq" resultType="int">
+    select seq
+    from users
+    where id = #{id}
+  </select>
+  
+  <insert id="insertUsers" parameterType="memberDto">
+    insert into users (id, password, enabled)
+    values (#{id}, #{password}, 1)
+  </insert>
+
+	<insert id="insertMember" parameterType="memberDto">
+	   insert into member (seq, name)
+     values (#{seq}, #{name}) 
+	</insert>
+	
+  <insert id="insertAuthorities" parameterType="memberDto">
+    insert into authorities (seq, authority) 
+    values (#{seq}, 'ROLE_USER')
+  </insert>
+	
+	<select id="idcheck" resultType="int">
+    SELECT COUNT(*) FROM users
+    WHERE id = #{id}
+  </select>
+  
+  <select id="selectMember" resultType="memberDto">
+    select * 
+    from member m 
+    join users u
+    on m.seq = u.seq
+  </select>
+  
+<!-- 
+	<select id="infoMember" parameterType="String" resultType="memberDto">
+		select u.*, m.*
+		from users u join member m
+		on u.seq = m.seq
+		where u.id = #{id}
+	</select>
+
+	<update id="updateMember" parameterType="memberDto">
+		update member
+		set email = #{email}, birth = #{birth}, gender=#{gender}, phone=#{phone}, addrcode = #{addrcode},
+		addr = #{addr}, addr2 = #{addr2}
+		where seq = #{seq}
+	</update>
+	
+	<delete id="deleteAuthorities" parameterType="int">
+    delete
+    from authorities
+    where seq = #{seq}
+  </delete>
+  
+	<delete id="deleteMember" parameterType="int">
+    delete
+    from member
+    where seq = #{seq}
+  </delete>
+
+	<delete id="deleteUsers" parameterType="int">
+		delete
+		from users
+		where seq = #{seq}
+	</delete>
+	
+	<select id="searchMember" parameterType="memberDto" resultType="memberDto">
+	 select * from member m join users u on m.seq=u.seq 
+	 where m.name like CONCAT('%',#{name},'%') or u.id like CONCAT('%',#{id},'%')  
+	</select>
+	 -->
+
+</mapper>
